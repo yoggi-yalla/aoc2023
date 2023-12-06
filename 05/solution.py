@@ -2,44 +2,58 @@ with open('input.txt') as f:
     data =f.read()
 
 
-def get_ranges(domain, converter):
-    mapppings = []
-    domain_min, domain_max = domain
+def get_dest_ranges(src_range, transform):
+    """
+    A transform is a list of mappings, and a mapping is a tuple with a source range nad a destination range.
 
-    # find all cases where there is an overlap between converter domains and input domain
-    for c in converter:
-        src, dest = c
-        if domain_min > src[1] or domain_max < src[0]:
+    This function returns a list of ranges that a given src_range can map to after a given transform.
+
+    It works by splitting src_range into many small ranges, and deciding which destination range they map to,
+    before returning only those destination ranges.
+    """
+
+    src_min, src_max = src_range
+
+
+    # this list will eventually contain mappings for all subintervals of src_range
+    mapppings = []
+
+
+    # find all cases where there is an overlap between the input src_range and the src_range of each mapping in the transform
+    for mapping in transform:
+        (m_src_min, m_src_max), (m_dest_min, m_dest_max) = mapping
+        if src_min > m_src_max or src_max < m_src_min:
+            # no overlap
             continue
 
-        overlap_start_src = max(domain_min, src[0])
-        overlap_end_src = min(domain_max, src[1])
-        overlap_start_dest = dest[0] + overlap_start_src - src[0]
-        overlap_end_dest = dest[0] + overlap_end_src - src[0]
+        o_src_min = max(src_min, m_src_min)
+        o_src_max = min(src_max, m_src_max)
+        o_dest_min = m_dest_min + o_src_min - m_src_min
+        o_dest_max = m_dest_min + o_src_max - m_src_min
 
-        mapppings.append(((overlap_start_src, overlap_end_src), (overlap_start_dest, overlap_end_dest)))
+        mapppings.append(((o_src_min, o_src_max), (o_dest_min, o_dest_max)))
 
 
-    # if no such cases, the entire domain should map to itself
+    # if there are no such cases, the entire range should map to itself
     if not mapppings:
-        mapppings.append(((domain_min, domain_max), (domain_min, domain_max)))
+        mapppings.append(((src_min, src_max), (src_min, src_max)))
     
 
-    # if there are gaps in the domain for the mappings generated above, those gaps must be filled with mappings to itself
+    # if there are gaps in the source ranges for the mappings generated above, those gaps must be filled with mappings to itself
     gap_mappings = []
 
 
-    # if the smallest domain value generated above is greater than domain_min we must fill that gap
-    if mapppings[0][0][0] > domain_min:
-        gap_mappings.append(((domain_min, mapppings[0][0][0]-1),(domain_min, mapppings[0][0][0]-1)))
+    # if the smallest range start generated above is greater than src_min we must fill that gap
+    if mapppings[0][0][0] > src_min:
+        gap_mappings.append(((src_min, mapppings[0][0][0]-1),(src_min, mapppings[0][0][0]-1)))
     
 
-    # likewise, if the largest domain value generated above is smaller than domain_max we must fill that gap
-    if mapppings[-1][0][1] < domain_max:
-        gap_mappings.append(((mapppings[-1][0][1]+1, domain_max),(mapppings[-1][0][1]+1, domain_max)))
+    # likewise, if the largest range start generated above is smaller than src_max we must fill that gap
+    if mapppings[-1][0][1] < src_max:
+        gap_mappings.append(((mapppings[-1][0][1]+1, src_max),(mapppings[-1][0][1]+1, src_max)))
     
     
-    # if there are gaps _within_ the domains generated above they must also be filled
+    # if there are gaps _within_ the ranges generated above they must also be filled
     i = 0
     while i < len(mapppings) - 1:
         (_, domain_end), (_, _) = mapppings[i]
@@ -57,19 +71,19 @@ def get_ranges(domain, converter):
 
     # retrieve the list of output ranges
     output_ranges = []
-    for c in mapppings:
-        output_ranges.append(c[1])
+    for mapping in mapppings:
+        output_ranges.append(mapping[1])
 
     return output_ranges
 
 
-def get_lowest_output(start_ranges, converters):
+def get_lowest_output(start_ranges, transforms):
     ranges = start_ranges
 
-    for c in converters:
+    for t in transforms:
         new_ranges = []
         for r in ranges:
-            subranges = get_ranges(r, c)
+            subranges = get_dest_ranges(r, t)
             new_ranges.extend(subranges)
         ranges = new_ranges
     
@@ -82,24 +96,25 @@ groups = data.split('\n\n')
 
 seeds = list(map(int, groups[0].split(': ')[1].split()))
 
-converters = []
+
+transforms = []
 for g in groups[1:]:
-    converter = []
+    mappings = []
     for line in g.splitlines()[1:]:
         dest, src, n = list(map(int, line.split()))
         src_range = (src, src + n - 1)
         dest_range = (dest, dest + n - 1)
-        converter.append((src_range, dest_range))
-    converters.append(sorted(converter))
+        mappings.append((src_range, dest_range))
+    transforms.append(sorted(mappings))
 
 
 start_ranges = [(s, s) for s in seeds]
-start_ranges2 = []
+start_ranges_2 = []
 i = 0
 while i < len(seeds) - 1:
-    start_ranges2.append((seeds[i], seeds[i] + seeds[i+1] - 1))
+    start_ranges_2.append((seeds[i], seeds[i] + seeds[i+1] - 1))
     i += 2
 
 
-print("Part 1:", get_lowest_output(start_ranges, converters))
-print("Part 2:", get_lowest_output(start_ranges2, converters))
+print("Part 1:", get_lowest_output(start_ranges, transforms))
+print("Part 2:", get_lowest_output(start_ranges_2, transforms))
