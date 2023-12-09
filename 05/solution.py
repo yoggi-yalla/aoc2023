@@ -4,12 +4,12 @@ with open('input.txt') as f:
 
 def get_dest_ranges(src_range, transform):
     """
-    A transform is a list of mappings, and a mapping is a tuple with a source range nad a destination range.
+    A transform is a list of mappings, and a mapping is a tuple with a source range and a destination range.
 
     This function returns a list of ranges that a given src_range can map to after a given transform.
 
-    It works by splitting src_range into many small ranges, and deciding which destination range they map to,
-    before returning only those destination ranges.
+    It works by splitting src_range into many small ranges, and deciding which destination range each
+    of them map to, before returning only those destination ranges.
     """
 
     src_min, src_max = src_range
