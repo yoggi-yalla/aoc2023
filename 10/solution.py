@@ -60,16 +60,8 @@ for i, line in enumerate(grid):
     for j, ch in enumerate(line):
         if ch == '.' and loop_counter % 2 == 1:
             inside_points.add((i, j))
-        elif ch == '|':
+        if ch in '|LJ':
             loop_counter += 1
-        elif ch in ('F', 'L'):
-            opening_wall = ch
-        elif ch == 'J' and opening_wall == 'F':
-            loop_counter += 1
-        elif ch == '7' and opening_wall == 'L':
-            loop_counter += 1
-        else:
-            continue
 
 
 print("Part 2:", len(inside_points))
