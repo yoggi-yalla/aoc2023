@@ -1,53 +1,50 @@
-import heapq
-import itertools
 import functools
-import collections
-
 
 with open('input.txt') as f:
     data = f.read()
 
 
+@functools.cache
+def valid_ways(springs, groups):
+    if len(groups) == 0:
+        if '#' not in springs:
+            return 1
+        else:
+            return 0
 
-line = ".??..??...?##. 1,1,3"
+    group = groups[0]
+    variations = []
+    found_hash = False
+    for i in range(len(springs)-group+1):
+        if found_hash:
+            break
 
-line = "???.### 1,1,3"
-line = "?###???????? 3,2,1"
+        if '.' not in springs[i:i+group]:
+            if i + group < len(springs) and springs[i+group] != '#':
+                variations.append(springs[i+group+1:])
+            elif i + group == len(springs):
+                variations.append('')
 
-valid_ways = 0
+        if springs[i] == '#':
+            found_hash = True
+
+    return sum(valid_ways(s, groups[1:]) for s in variations)
+
+
+ans1 = ans2 = 0
 
 for line in data.splitlines():
     springs, groups = line.split()
-    groups = list(map(int, groups.split(',')))
 
-    for c in itertools.combinations(list(range(len(springs))), len(groups)):
-        l = list(springs)
-        broken = False
-        for i, place in enumerate(c):
-            for j in range(groups[i]):
-                if place + j < len(l) and l[place+j] in ('?', '#'):
-                    l[place+j] = '@'
-                    continue
-                else:
-                    broken = True
-                    break
-            if broken:
-                break
-    
+    springs2 = "?".join([springs]*5)
+    groups2 = ",".join([groups]*5)
 
-        if not broken:
-            x = "".join(l)
-            x = x.replace('#', '@')
-            import re
-            y = (list(map(len, re.findall(r'@+', x))))
-            if y == groups:
-                valid_ways += 1
+    groups = tuple(map(int, groups.split(',')))
+    groups2 = tuple(map(int, groups2.split(',')))
+
+    ans1 += valid_ways(springs, groups)
+    ans2 += valid_ways(springs2, groups2)
 
 
-
-
-
-print(valid_ways)
-
-
-
+print("Part 1:", ans1)
+print("Part 2:", ans2)
