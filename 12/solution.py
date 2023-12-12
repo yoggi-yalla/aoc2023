@@ -6,41 +6,32 @@ with open('input.txt') as f:
 
 @functools.cache
 def valid_ways(springs, groups):
-    if len(groups) == 0:
+    if not groups:
         if '#' not in springs:
             return 1
-        else:
-            return 0
+        return 0
 
     group = groups[0]
-    variations = []
-    found_hash = False
-    for i in range(len(springs)-group+1):
-        if found_hash:
-            break
-
+    remainders = []
+    for i in range(len(springs) - group + 1):
         if '.' not in springs[i:i+group]:
-            if i + group < len(springs) and springs[i+group] != '#':
-                variations.append(springs[i+group+1:])
-            elif i + group == len(springs):
-                variations.append('')
+            if i + group == len(springs) or springs[i+group] != '#':
+                remainders.append(springs[i+group+1:])
 
         if springs[i] == '#':
-            found_hash = True
+            break
 
-    return sum(valid_ways(s, groups[1:]) for s in variations)
+    return sum(valid_ways(s, groups[1:]) for s in remainders)
 
 
 ans1 = ans2 = 0
 
 for line in data.splitlines():
     springs, groups = line.split()
+    groups = tuple(map(int, groups.split(',')))
 
     springs2 = "?".join([springs]*5)
-    groups2 = ",".join([groups]*5)
-
-    groups = tuple(map(int, groups.split(',')))
-    groups2 = tuple(map(int, groups2.split(',')))
+    groups2 = groups*5
 
     ans1 += valid_ways(springs, groups)
     ans2 += valid_ways(springs2, groups2)
