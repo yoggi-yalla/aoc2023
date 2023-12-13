@@ -2,10 +2,10 @@ with open('input.txt') as f:
     data = f.read()
 
 
-def find_reflection(mirror, invalid_row=0, invalid_col=0):
+def find_reflection(grid, invalid_row=0, invalid_col=0):
 
-    rows = ["".join(line) for line in mirror]
-    cols = ["".join(col) for col in zip(*mirror)]
+    rows = ["".join(line) for line in grid]
+    cols = ["".join(col) for col in zip(*grid)]
 
     nr = nc = 0
 
@@ -31,24 +31,24 @@ def find_reflection(mirror, invalid_row=0, invalid_col=0):
 ans1 = ans2 = 0
 
 for g in data.split('\n\n'):
-    mirror = [[ch for ch in line] for line in g.splitlines()]
+    grid = [[ch for ch in line] for line in g.splitlines()]
 
-    nr_og, nc_og = find_reflection(mirror)
+    nr_og, nc_og = find_reflection(grid)
 
     found_reflection = False
-    for i, line in enumerate(mirror):
+    for i, line in enumerate(grid):
         for j, ch in enumerate(line):
             if ch == '#':
-                mirror[i][j] = '.'
+                grid[i][j] = '.'
             else:
-                mirror[i][j] = '#'
+                grid[i][j] = '#'
 
-            nr, nc = find_reflection(mirror, nr_og, nc_og)
+            nr, nc = find_reflection(grid, nr_og, nc_og)
 
             if ch == '#':
-                mirror[i][j] = '#'
+                grid[i][j] = '#'
             else:
-                mirror[i][j] = '.'
+                grid[i][j] = '.'
 
 
             if (nr, nc) != (0, 0):
