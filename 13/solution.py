@@ -2,65 +2,38 @@ with open('input.txt') as f:
     data = f.read()
 
 
-def find_reflection(grid, invalid_row=0, invalid_col=0):
+def count_diff(s1, s2):
+    return sum(1 for a, b in zip(s1, s2) if a != b)
 
-    rows = ["".join(line) for line in grid]
-    cols = ["".join(col) for col in zip(*grid)]
 
-    nr = nc = 0
+def count_smudges(l1, l2):
+    return sum(count_diff(s1, s2) for s1, s2 in zip(l1, l2))
 
-    for i in range(1, len(rows)):
-        j = min(i, len(rows)-i)
 
-        if rows[i:i+j] == rows[i-j:i][::-1]:
-            if i != invalid_row:
-                nr = i
-                break
+def find_pivot(l, goal):
+    for i in range(1, len(l)):
+        j = min(i, len(l) - i)
+        s = count_smudges(l[i-j:i], l[i:i+j][::-1])
+        if s == goal:
+            return i
 
-    for i in range(1, len(cols)):
-        j = min(i, len(cols)-i)
 
-        if cols[i:i+j] == cols[i-j:i][::-1]:
-            if i != invalid_col:
-                nc = i
-                break
-    
-    return (nr, nc)
+def transpose(g):
+    return [list(col) for col in (zip(*g))]
+
+
+def summarize(g, goal):
+    i = find_pivot(g, goal) or 0
+    j = find_pivot(transpose(g), goal) or 0
+    return i * 100 + j
 
 
 ans1 = ans2 = 0
+for grid in data.split('\n\n'):
+    g = [[ch for ch in line] for line in grid.splitlines()]
 
-for g in data.split('\n\n'):
-    grid = [[ch for ch in line] for line in g.splitlines()]
-
-    nr_og, nc_og = find_reflection(grid)
-
-    found_reflection = False
-    for i, line in enumerate(grid):
-        for j, ch in enumerate(line):
-            if ch == '#':
-                grid[i][j] = '.'
-            else:
-                grid[i][j] = '#'
-
-            nr, nc = find_reflection(grid, nr_og, nc_og)
-
-            if ch == '#':
-                grid[i][j] = '#'
-            else:
-                grid[i][j] = '.'
-
-
-            if (nr, nc) != (0, 0):
-                found_reflection = True
-                break
-
-        if found_reflection:
-            break
-
-    ans1 += nc_og + 100 * nr_og
-    ans2 += nc + 100 * nr
-
+    ans1 += summarize(g, 0)
+    ans2 += summarize(g, 1)
 
 print("Part 1:", ans1)
 print("Part 2:", ans2)
