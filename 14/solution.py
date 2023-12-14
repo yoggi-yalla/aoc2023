@@ -1,11 +1,17 @@
-from collections import deque
-
 with open('input.txt') as f:
     data = f.read()
 
 
 grid1 = [[ch for ch in line] for line in data.splitlines()]
 grid2 = [[ch for ch in line] for line in data.splitlines()]
+
+
+boulder_positions1 = []
+for i, line in enumerate(grid1):
+    for j, ch in enumerate(line):
+        if ch == 'O':
+            boulder_positions1.append((i, j))
+boulder_positions2 = boulder_positions1.copy()
 
 
 directions1 = ((-1,0),)
@@ -20,20 +26,17 @@ def to_string(grid):
     return "".join(["".join(line) for line in grid])
 
 
-def run_cycle(grid, directions):
-    boulder_positions = []
-    for i, line in enumerate(grid):
-        for j, ch in enumerate(line):
-            if ch == 'O':
-                boulder_positions.append((i, j))
-
-
+def run_cycle(grid, directions, boulder_positions):
     for di, dj in directions:
         while True:
             unchanged = True
             for p, (i, j) in enumerate(boulder_positions):
                 ii, jj = i+di, j+dj
-                if in_grid(ii, jj, grid) and grid[ii][jj] == '.':
+                while in_grid(ii, jj, grid) and grid[ii][jj] == '.':
+                    iii, jjj = ii+di, jj+dj
+                    if in_grid(iii, jjj, grid) and grid[iii][jjj] == '.':
+                        ii, jj = iii, jjj
+                        continue
                     unchanged = False
                     boulder_positions[p] = (ii, jj)
                     grid[i][j] = '.'
@@ -42,47 +45,48 @@ def run_cycle(grid, directions):
             if unchanged:
                 break
 
+    return boulder_positions
+
 
 def count(grid):
     ans = 0
     for i, line in enumerate(grid):
         c = "".join(line).count('O')
-        ans += c * (len(grid)-i)
+        ans += c * (len(grid) - i)
     return ans
 
 
-def part_1(grid, directions):
-    run_cycle(grid, directions)
-    return count(grid)
+def part_1():
+    run_cycle(grid1, directions1, boulder_positions1)
+    return count(grid1)
 
 
-def part_2(grid, directions):
+def part_2():
     seen = set()
     history = []
-    
-    s = to_string(grid)
+    bp = boulder_positions2
+
+    s = to_string(grid2)
 
     i = 0
     while s not in seen:
         seen.add(s)
         history.append(s)
-        run_cycle(grid, directions)
-        s = to_string(grid)
+        bp = run_cycle(grid2, directions2, bp)
+        s = to_string(grid2)
         i += 1
-    
+
     cycle_start = history.index(s)
     cycle_end = i
     cycle_length = cycle_end - cycle_start
 
     m = (1000000000 - cycle_start) % cycle_length
 
-    new_grid = [[ch for ch in line] for line in data.splitlines()]
+    for _ in range(m):
+        bp = run_cycle(grid2, directions2, bp)
 
-    for _ in range(cycle_start + m):
-        run_cycle(new_grid, directions)
-    
-    return count(new_grid)
+    return count(grid2)
 
 
-print("Part 1:", part_1(grid1, directions1))
-print("Part 2:", part_2(grid2, directions2))
+print("Part 1:", part_1())
+print("Part 2:", part_2())
