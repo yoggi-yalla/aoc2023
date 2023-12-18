@@ -1,109 +1,82 @@
+import numpy as np
+
 with open('input.txt') as f:
     data = f.read()
 
 
-'''
-data = """R 6 (#70c710)
-D 5 (#0dc571)
-L 2 (#5713f0)
-D 2 (#d2c081)
-R 2 (#59c680)
-D 2 (#411b91)
-L 5 (#8ceee2)
-U 2 (#caa173)
-L 1 (#1b58a2)
-U 2 (#caa171)
-R 2 (#7807d2)
-U 3 (#a77fa3)
-L 2 (#015232)
-U 2 (#7a21e3)"""
-'''
+def shoelace(x_y):
+    x_y = np.array(x_y)
+    x_y = x_y.reshape(-1,2)
 
-start = (0,0)
-pos = start
+    x = x_y[:,0]
+    y = x_y[:,1]
+
+    S1 = np.sum(x*np.roll(y,-1))
+    S2 = np.sum(y*np.roll(x,-1))
+
+    area = .5*np.absolute(S1 - S2)
+
+    return area
 
 
-filled = set()
-
-dirs = {
+dirs1 = {
     'U': (-1,0),
     'D': (1,0),
     'L': (0,-1),
     'R': (0,1),
 }
 
-vertices = set()
 
+dirs2 = (
+    (0,1),   
+    (1,0),
+    (0,-1),
+    (-1,0),
+)
+
+
+pos1 = pos2 = (0,0)
+
+vertices1 = []
+vertices2 = []
 for line in data.splitlines():
     a, b, c = line.split()
+    c = c.replace('(', '').replace(')', '').replace('#', 'x')
 
-    steps = int(b)
-    di, dj = dirs[a]
+    n1 = int(b)
+    n2 = int('0'+c[:-1], 16)
 
-    for _ in range(steps):
-        i, j = pos
-        ii, jj = i+di, j+dj
-        pos = ii, jj
-        filled.add(pos)
-    vertices.add((i, j))
+    di1, dj1 = dirs1[a]
+    di2, dj2 = dirs2[int(c[-1])]
 
+    i1, j1 = pos1
+    i2, j2 = pos2
 
+    ii1, jj1 = i1+di1*n1, j1+dj1*n1
+    ii2, jj2 = i2+di2*n2, j2+dj2*n2
 
-max_i = max(x[0] for x in filled)
-min_i = min(x[0] for x in filled)
+    i1, j1 = ii1, jj1
+    i2, j2 = ii2, jj2
 
-max_j = max(x[1] for x in filled)
-min_j = min(x[1] for x in filled)
+    pos1 = i1, j1
+    pos2 = i2, j2
 
-
-
-H = max_i - min_i + 1
-W = max_j - min_j + 1
-
-translated = set()
-
-for i, j in filled:
-    translated.add((i-min_i, j-min_j))
+    vertices1.append(pos1)
+    vertices2.append(pos2)
 
 
-
-grid = [['.' for _ in range(W)] for _ in range(H)]
-
-
-for i, j in translated:
-    grid[i][j] = '*'
+def dist(v1, v2):
+    i, j, ii, jj = *v1, *v2
+    return abs(i-ii) + abs(j-jj)
 
 
-mid_i, mid_j = H//2, W//2
-
-Q = [(mid_i, mid_j)]
-
-
-def in_grid(i, j):
-    return 0 <= i < len(grid) and 0 <= j < len(grid[i])
-
-
-while Q:
-    i, j = Q.pop()
-
-    for di, dj in dirs.values():
-        ii, jj = i+di, j+dj
-        if in_grid(ii, jj) and grid[ii][jj] == '.':
-            Q.append((ii, jj))
-            grid[ii][jj] = '@'
+def area(vertices):
+    perimeter = 0
+    for v1, v2 in zip(vertices, vertices[1:]):
+        perimeter += dist(v1, v2)
+    perimeter += dist(vertices[0], vertices[-1])
+    return int(shoelace(vertices) + perimeter / 2 + 1)
 
 
-
-for line in grid:
-    print("".join(line))
-
-
-ans = 0
-for line in grid:
-    s = "".join(line)
-    ans += s.count('*') + s.count('@')
-
-print(ans)
-
-
-
+print("Part 1:", area(vertices1))
+print("Part 2:", area(vertices2))
