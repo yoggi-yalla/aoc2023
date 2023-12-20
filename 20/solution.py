@@ -71,17 +71,13 @@ def push_button(i):
 
     buffer = [(0, 'button', 'broadcaster')]
 
-    next_buffers = [buffer]
-
-    while next_buffers:
-        buf = next_buffers.pop(0)
-        while buf:
-            low_high, src, dest = buf.pop(0)
-            if low_high > 0: 
-                hc += 1
-            else: 
-                lc += 1
-            next_buffers.append(send_pulse(low_high, src, dest, i))
+    while buffer:
+        low_high, src, dest = buffer.pop(0)
+        if low_high > 0: 
+            hc += 1
+        else: 
+            lc += 1
+        buffer.extend(send_pulse(low_high, src, dest, i))
 
 
 for i in range(1, 1_000_000):
