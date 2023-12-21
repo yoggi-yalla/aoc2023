@@ -44,7 +44,7 @@ def count(start, steps):
         next = set()
         for i, j in frontier:
             for ii, jj in neighbors(i, j):
-                if grid[ii%len(grid)][jj%len(grid[0])] == '.':
+                if grid[ii][jj] == '.':
                     next.add((ii, jj))
         
         return set.union(next, prev), current, prev
