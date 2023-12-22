@@ -4,22 +4,16 @@ with open('input.txt') as f:
     data = f.read()
 
 
+def parse_line(line):
+    x, y, z, xx, yy, zz = map(int, line.replace('~', ',').split(','))
+    return min(x, xx), min(y, yy), min(z, zz), max(x, xx), max(y, yy), max(z, zz)
+
+
 all_points = set()
 bricks = {}
 
 for bricknbr, line in enumerate(data.splitlines()):
-    a, b = line.split('~')
-    a, b = a.split(','), b.split(',')
-    a = tuple(map(int, a))
-    b = tuple(map(int, b))
-
-    xmi = min(a[0], b[0])
-    ymi = min(a[1], b[1])
-    zmi = min(a[2], b[2])
-
-    xma = max(a[0], b[0])
-    yma = max(a[1], b[1])
-    zma = max(a[2], b[2])
+    xmi, ymi, zmi, xma, yma, zma = parse_line(line)
 
     points = set()
 
@@ -30,7 +24,6 @@ for bricknbr, line in enumerate(data.splitlines()):
                 all_points.add((x, y, z))
             
     bricks[bricknbr] = points
-
 
 
 while True:
@@ -71,7 +64,6 @@ for k, v in bricks.items():
                 deps[k].add(kk)
 
 
-
 def chain_reaction(deps, brick):
 
     deps = copy.deepcopy(deps)
@@ -85,7 +77,7 @@ def chain_reaction(deps, brick):
                 deps[k].remove(brick)
                 if len(v) == 0:
                     buffer.append(k)
-                    n+=1
+                    n += 1
     return n
 
 
