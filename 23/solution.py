@@ -16,7 +16,7 @@ dirs = (
 )
 
 
-def in_grid(i,j):
+def in_grid(i, j):
     return 0 <= i < len(grid) and 0 <= j < len(grid[i])
 
 
@@ -57,38 +57,35 @@ def path_between(j1, j2, part):
         if (i, j) in pathset:
             continue
         
-        if len(path) > 0 and (i, j) in junctions:
+        if (i, j) != j1 and (i, j) in junctions:
             continue
+
+        next_path = path + ((i,j),)
+        next_pathset = pathset.union(frozenset([(i,j)]))
 
         if part == 1 and grid[i][j] in '<>^v':
-            if grid[i][j] == '<': q.append((i,j-1,path+((i,j),),pathset.union(frozenset([(i,j)]))))
-            if grid[i][j] == '>': q.append((i,j+1,path+((i,j),),pathset.union(frozenset([(i,j)]))))
-            if grid[i][j] == '^': q.append((i-1,j,path+((i,j),),pathset.union(frozenset([(i,j)]))))
-            if grid[i][j] == 'v': q.append((i+1,j,path+((i,j),),pathset.union(frozenset([(i,j)]))))
+            if grid[i][j] == '<': q.append((i ,j-1, next_path, next_pathset))
+            if grid[i][j] == '>': q.append((i ,j+1, next_path, next_pathset))
+            if grid[i][j] == '^': q.append((i-1 ,j, next_path, next_pathset))
+            if grid[i][j] == 'v': q.append((i+1 ,j, next_path, next_pathset))
             continue
 
-        for ii,jj in neighbors(i, j):
-            q.append((ii, jj, path+((i,j),),pathset.union(frozenset([(i,j)]))))
+        for ii, jj in neighbors(i, j):
+            q.append((ii, jj, next_path, next_pathset))
 
 
-def paths_to_target(j_map):
-    paths = set()
+def find_all_paths(j, j_map, paths, path):
+    for jj in j_map[j]:
+        if jj == goal:
+            paths.append((start,) + tuple(path) + (goal,))
+        elif jj not in path:
+            path.append(jj)
+            find_all_paths(jj, j_map, paths, path)
+            path.pop()
 
-    q = [(0, 1, tuple(), frozenset())]
 
-    while q:
-        i, j, path, pathset = q.pop()
-
-        if (i, j) == goal:
-            paths.add(path+((i,j),))
-
-        if (i, j) in pathset:
-            continue
-        
-        for ii, jj in j_map[i,j]:
-            q.append((ii, jj, path + ((i,j),), pathset.union(frozenset([(i,j)]))))
-    
-    return paths
+def get_length(j_paths, path):
+    return sum(len(j_paths[j1,j2]) for j1,j2 in zip(path,path[1:]))
 
 
 def solve(part):
@@ -103,8 +100,10 @@ def solve(part):
             j_map[j1].append(j2)
 
     ans = 0
-    for p in paths_to_target(j_map):
-        ans = max(ans, sum(len(j_paths[j1,j2]) for j1, j2 in zip(p, p[1:])))
+    paths = []
+    find_all_paths(start, j_map, paths, [])
+    for p in paths:
+        ans = max(ans, get_length(j_paths, p))
 
     return ans
 
