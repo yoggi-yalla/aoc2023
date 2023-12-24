@@ -4,17 +4,21 @@ import itertools
 with open('input.txt') as f:
     data = f.read()
 
+
 def parse_line(line):
-    line = line.replace(' @', ',')
+    line = line.replace(' @ ', ', ')
     return tuple(map(int, line.split(', ')))
 
+
 crystals = [parse_line(line) for line in data.splitlines()]
+
 
 def line(p1, p2):
     A = (p1[1] - p2[1])
     B = (p2[0] - p1[0])
     C = (p1[0]*p2[1] - p2[0]*p1[1])
     return A, B, -C
+
 
 def intersection(L1, L2):
     D  = L1[0] * L2[1] - L1[1] * L2[0]
@@ -23,7 +27,7 @@ def intersection(L1, L2):
     if D != 0:
         x = Dx / D
         y = Dy / D
-        return x,y
+        return x, y
     else:
         return False
 
@@ -63,13 +67,11 @@ dx = Int('dx')
 dy = Int('dy')
 dz = Int('dz')
 
-constraints = []
-
-for i, c in enumerate(crystals):
+# The problem has a unique solution with only three hailstones
+for i, c in enumerate(crystals[:3]):
     xx, yy, zz, dxx, dyy, dzz = c
 
     t = Int(f't_{i}')
-    s.add(t > 0)
 
     s.add(x == xx + (dxx - dx) * t)
     s.add(y == yy + (dyy - dy) * t)
@@ -77,6 +79,4 @@ for i, c in enumerate(crystals):
 
 
 s.check()
-ans2 = s.model()[x].as_long() + s.model()[y].as_long() + s.model()[z].as_long()
-
-print("Part 2:", ans2)
+print("Part 2:", s.model().eval(x + y + z))
